@@ -23,22 +23,28 @@ def get_entity_by_name(name):
         result.append(res['item']['value'])
     return result
     
-
-def get_outgoing_nodes(entity_id):
-    '''
-    entity_id - Wikidata id for entity
-    '''
-
-
-    url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql'
-    query = '''select ?relation ?obj where { wd:''' + str(entity_id) + ''' ?relation ?obj }'''
-    data = requests.get(url, params={'query': query, 'format': 'json'}).json()
-    
+# Help class
+def json_to_doubles(data):
     result = []
     for a in data['results']['bindings']:
         result.append((a['relation']['value'], a['obj']['value']))
     return result
 
+def get_outgoing_nodes(entity_id):
+    '''
+    entity_id - Wikidata id for entity
+    '''
+    url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql'
+    query = '''select ?relation ?obj where { wd:''' + str(entity_id) + ''' ?relation ?obj }'''
+    data = requests.get(url, params={'query': query, 'format': 'json'}).json()
+    
+    return json_to_doubles(data)
 
-def get_Subgraph():
-    return 
+
+def get_Subgraph(entity_id):
+    url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql'
+    query = '''select ?relation ?obj 
+    where { wd:'''+str(entity_id)+''' ?relation ?obj .
+        ?obj ?relation2 ?obj2 }'''
+    data = requests.get(url, params={'query': query, 'format': 'json'}).json()
+    return json_to_doubles(data)
