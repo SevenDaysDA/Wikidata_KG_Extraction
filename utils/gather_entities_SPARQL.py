@@ -110,3 +110,28 @@ def get_Subgraph(entity_id, hops=2):
 
     data = requests.get(url, params={'query': query, 'format': 'json'}).json()
     return set(__json_to_doubles(data))
+
+
+def get_Edges_from(entity_id):
+    url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql'
+
+    query = '''SELECT ?wd ?wdLabel ?p ?ps_ ?ps_Label ?wdpqLabel ?pq_Label{
+  VALUES (?company) {(wd:'''+str(entity_id)+''')}
+  
+  ?company ?p ?statement .
+  ?statement ?ps ?ps_ .
+  
+  ?wd wikibase:claim ?p.
+  ?wd wikibase:statementProperty ?ps.
+  
+  OPTIONAL {
+  ?statement ?pq ?pq_ .
+  ?wdpq wikibase:qualifier ?pq .
+  }
+
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en" }
+} ORDER BY ?wd ?statement ?ps_'''
+
+    data = requests.get(url, params={'query': query, 'format': 'json'}).json()
+    return set(__json_to_doubles(data))
