@@ -25,36 +25,7 @@ def get_entity_by_name(name):
     
     
 ###########################   Help class   ###########################
-def clean_hyperlinks_old(data, Delete_BoxID = True):
-    result = []
-    for i in data:
-        prefixes = ["http://www.wikidata.org/entity/statement/", "http://www.wikidata.org/prop/"]
-        clean_tuple = ()
-        for i_element in i:
-            # Replace if prefix appears
-            for prefix in prefixes:
-                if prefix in i_element:
-                    clean_tuple += (i_element.split('-')[0].replace(prefix, "") ,) if Delete_BoxID and "-" in i_element else (i_element.replace(prefix, "") ,)
-        result.append(clean_tuple)
-    return set(result)
 
-def clean_hyperlinks_old_old(data, Delete_BoxID = True):
-    prefixes = ["http://www.wikidata.org/entity/", "http://www.wikidata.org/prop/", "direct/", "statement/"]
-    result = []
-
-    for i in data:
-        clean_tuple = ()
-        for i_element in i:
-            local = i_element
-            # Replace if prefix appears
-            for prefix in prefixes:
-                if prefix in local:
-                    local = local.split(prefix)[1]
-                if Delete_BoxID and '-' in local:
-                    local = local.split('-')[0]
-            clean_tuple += (local,)
-        result.append(clean_tuple)
-    return set(result)       # set()
 
 def clean_hyperlinks(data, Delete_BoxID = True):
     prefixes = ["http://www.wikidata.org/entity/", "http://www.wikidata.org/prop/", "direct/", "statement/"]
@@ -82,10 +53,12 @@ def __json_to_doubles(data):
     result = []
     for line in data['results']['bindings']:
         value_line=()
-        print(line)                         # BUG: MAYBE TO BIG
+                                # BUG: MAYBE TO BIG
         for value in line.values():
             value_line += (value['value'],)
-        result.append(value)
+        result.append(value_line)
+        # print(value_line)
+
     return result
 
 ######################################################################
@@ -112,7 +85,7 @@ def get_Subgraph(entity_id, hops=2):
     return set(__json_to_doubles(data))
 
 
-def get_Edges_from(entity_id):
+def get_edges_from_id(entity_id):
     url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql'
 
     query = '''SELECT ?wd ?wdLabel ?p ?ps_ ?ps_Label ?wdpqLabel ?pq_Label{
@@ -135,3 +108,58 @@ def get_Edges_from(entity_id):
 
     data = requests.get(url, params={'query': query, 'format': 'json'}).json()
     return set(__json_to_doubles(data))
+
+
+def get_edge_for_nodepair(entity_one, entity_two):
+    url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql'
+
+    query = '''SELECT ?wd ?wdLabel ?p ?ps_ ?ps_Label ?wdpqLabel ?pq_Label{
+  VALUES (?company) {(wd:'''+str(entity_one)+''')}
+  
+  ?company ?p ?statement .
+  ?statement ?ps ?ps_ .
+  
+  ?wd wikibase:claim ?p.
+  ?wd wikibase:statementProperty ?ps.
+  
+  OPTIONAL {
+  ?statement ?pq ?pq_ .
+  ?wdpq wikibase:qualifier ?pq .
+  }
+
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en" }
+} ORDER BY ?wd ?statement ?ps_'''
+    data = requests.get(url, params={'query': query, 'format': 'json'}).json()
+    response_clean =  set(__json_to_doubles(data))
+    # for line in response_clean:
+
+    result = []
+    for line in response_clean:
+        if entity_two in line[2][-len(entity_two):]:    #Maybe filtering to many out, what happens to statements?
+            result.append(line)
+    return result
+
+
+def predicate_by_property(entity_id, property_id):
+    url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql'
+    query = '''SELECT ?item ?itemLabel 
+WHERE 
+{ wd:'''+str(entity_id)+ ''' wdt:''' + str(property_id)+''' ?item. 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". } # <span lang="en" dir="ltr" class="mw-content-ltr">Helps get the label in your language, if not, then en language</span>
+}'''
+    data = requests.get(url, params={'query': query, 'format': 'json'}).json()
+    response_clean =  set(__json_to_doubles(data))
+    return response_clean
+
+def posticate_by_property(property_id, entity_id):
+    url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql'
+    query = '''SELECT ?item ?itemLabel 
+WHERE 
+{ ?item wdt:''' + str(property_id)+''' wd:'''+str(entity_id)+ ''' . 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". } # <span lang="en" dir="ltr" class="mw-content-ltr">Helps get the label in your language, if not, then en language</span>
+}'''
+    data = requests.get(url, params={'query': query, 'format': 'json'}).json()
+    print(data)
+    response_clean =  set(__json_to_doubles(data))
+    return response_clean
