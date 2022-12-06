@@ -48,7 +48,6 @@ def clean_hyperlinks(data, Delete_BoxID = True):
             result.append(clean_tuple)
     return result       # set()
         
-
 def __json_to_doubles(data):
     result = []
     for line in data['results']['bindings']:
@@ -62,7 +61,6 @@ def __json_to_doubles(data):
     return result
 
 ######################################################################
-
 def get_outgoing_nodes(entity_id):
     '''
     entity_id - Wikidata id for entity
@@ -73,18 +71,30 @@ def get_outgoing_nodes(entity_id):
     
     return __json_to_doubles(data)
 
-
 def get_Subgraph(entity_id, hops=2):
-    # TODO: composing wit new loops
     url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql'
-
 
     query = '''select ''' + ' '.join(["?relation"+str(hop)+" ?obj"+str(hop) for hop in range(hops)]) + ''' where { wd:'''+str(entity_id)+" ?relation0 ?obj0 . " + ' . '.join(["?obj"+str(hop) +" ?relation"+str(hop+1)+" ?obj"+str(hop+1) for hop in range(hops-1)])+''' }'''
 
     data = requests.get(url, params={'query': query, 'format': 'json'}).json()
     return set(__json_to_doubles(data))
 
+# def get_Subgraph_descriptive(entity_id, hops=2):
+#     '''
+#         Returns the subgraph for a entity_id with additional descriptive information.
+#         Format: 
+#     '''
+#     url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql'
 
+#     # query = '''select ''' + ' '.join(["?relation"+str(hop)+" ?obj"+str(hop) for hop in range(hops)]) + ''' where { wd:'''+str(entity_id)+" ?relation0 ?obj0 . " + ' . '.join(["?obj"+str(hop) +" ?relation"+str(hop+1)+" ?obj"+str(hop+1) for hop in range(hops-1)])+''' }'''
+#     query = 
+#     data = requests.get(url, params={'query': query, 'format': 'json'}).json()
+#     return set(__json_to_doubles(data))
+
+
+
+
+# depreceated
 def get_edges_from_id(entity_id):
     url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql'
 
@@ -108,6 +118,14 @@ def get_edges_from_id(entity_id):
 
     data = requests.get(url, params={'query': query, 'format': 'json'}).json()
     return set(__json_to_doubles(data))
+
+def get_edges_by_ID(entitiy_id):
+    url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql'
+    query = '''SELECT ?p ?tail {
+  wd:'''+str(entitiy_id)+''' ?p ?tail .
+  }'''
+    data = requests.get(url, params={'query': query, 'format': 'json'}).json()
+    return __json_to_doubles(data)
 
 
 def get_edge_for_nodepair(entity_one, entity_two):

@@ -11,16 +11,18 @@ Main pupose is to create a simple extraction of useful methods to extract KG-tri
 ### Queries
 - [x] GET Nodes by name - [Problem: To many IDs are returned]
 - [ ] GET Nodes inbetween (multihop)
-- [x] GET Subgraph by Names
-- [ ] GET Subgraph by NodeID
-- [ ] GET Edges for given NodeID-pair (1-hop)
+- [o] GET Subgraph by Names
+- [x] GET Subgraph by NodeID
+- [x] GET Edges for given NodeID-pair (1-hop)
 - [ ] GET Edge Relation info
-- [ ] GET Edge by name
+- [o] GET Edge by name
 - [x] GET Edges by NodeIDs
 - [ ] Extra Nodes?
 - [ ] GET Adj Matrix
 - [ ] GET ADJ AllInOne
 - [ ] GET Node/Relation by ID
+- [x] Predicate by Ent_ID and Property_ID
+- [x] Posticate by Ent_ID and Property_ID
 ### Not applicable:
 - Update nodes
 - Uploading nodes
