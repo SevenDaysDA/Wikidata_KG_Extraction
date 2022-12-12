@@ -22,6 +22,29 @@ def get_entity_by_name(name):
     for res in response['results']['bindings']:
         result.append(res['item']['value'])
     return result
+
+def get_entity_by_names(names):
+    '''
+    names - A list of the names of the preferred label
+    Return - List of all entites, which are found for the given name entity.
+    '''
+    queriefied_list = ""
+    for name in names:
+        queriefied_list += f"\"{name}\"@en "
+
+    url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql'
+    query = ''' SELECT ?item ?prefLabel
+        WHERE {
+            values ?prefLabel {'''+queriefied_list+'''}
+            ?item rdfs:label|skos:altLabel ?prefLabel.
+        }'''
+    response = requests.get(url, params={'query': query, 'format': 'json'}).json()
+    results = [[name] for name in names]
+
+    # print(response)
+    for res in response['results']['bindings']:
+        results[names.index(res['prefLabel']['value'])].append(res['item']['value'])
+    return results
     
     
 ###########################   Help class   ###########################
@@ -127,6 +150,16 @@ def get_edges_by_ID(entitiy_id):
     data = requests.get(url, params={'query': query, 'format': 'json'}).json()
     return __json_to_doubles(data)
 
+def get_edges_by_IDs(ent_ids):
+    querified_string = "{" + f"wd:{ent_ids[0]} ?p ?tail . " + "}"
+    if len(ent_ids) > 1:
+        for ent_id in range(1, len(ent_ids)):
+            querified_string += " UNION {" + f"wd:{ent_ids[ent_id]} ?p ?tail . " + "}"
+    url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql'
+    query = '''SELECT ?p ?tail {''' + querified_string + ''' }'''
+    data = requests.get(url, params={'query': query, 'format': 'json'}).json()
+    return data
+
 
 def get_edge_for_nodepair(entity_one, entity_two):
     url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql'
@@ -181,3 +214,6 @@ WHERE
     print(data)
     response_clean =  set(__json_to_doubles(data))
     return response_clean
+
+
+# Get Node Info, i.e. Q31 -> name = Belgium, description = country in western Europe, 

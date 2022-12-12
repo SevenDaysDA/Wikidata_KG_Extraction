@@ -5,10 +5,11 @@ from utils.gather_entities_SPARQL import *
 
 # tasks = ['ent_by_name', 'outgoing_nodes', 'subgraph', 'edges', 'node_pair']
 # tasks = ['predicate','posticate', 'node_pair']
-tasks = ["subgraph"]
+tasks = ["ent_by_name"]
 
 if 'ent_by_name' in tasks:
-    result = get_entity_by_name("Barack Obama") # res -> ['http://www.wikidata.org/entity/Q76', 'http://www.wikidata.org/entity/Q47513588', 'http://www.wikidata.org/entity/Q61909968']
+    result = get_entity_by_names(["Barack Obama", "Bill Clinton"]) # res -> ['http://www.wikidata.org/entity/Q76', 'http://www.wikidata.org/entity/Q47513588', 'http://www.wikidata.org/entity/Q61909968']
+
     print(result)
 
 if 'outgoing_nodes' in tasks:
@@ -30,8 +31,6 @@ if 'edges' in tasks:
     for res in result:
         print(res)
     print(len(result))
-
-
 
 
 if 'predicate' in tasks:
